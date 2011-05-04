@@ -1,0 +1,9 @@
+#!/bin/sh
+shout() { echo "$0: $*" >&2; }
+barf() { shout "$*"; exit 111; }
+safe() { "$@" || barf "cannot $*"; }
+
+# mdml requires perl and Markdown.pl
+[ -z "`which Markdown.pl`" ] && barf "can't find Markdown.pl"
+
+cat /dev/stdin | Markdown.py --html4tags || barf "markdown failure."

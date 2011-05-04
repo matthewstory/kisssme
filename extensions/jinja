@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+# preliminary adaptor for jinja templates
+# requires jinja2 and python
+import os
+import sys
+try:
+    import jinja2
+except ImportError, e:
+    print >> sys.stderr, '%s: %s' (sys.argv[0], e)
+    sys.exit(111)
+
+sys.stdout.write('%s\n' % jinja2.Template(sys.stdin.read()).render(**os.environ))
