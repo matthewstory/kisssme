@@ -1,0 +1,62 @@
+#!/bin/sh
+# takes a src directory, recursively builds to a target directory
+shout() { echo "$0: $*" >&2; }
+barf() { shout "$*"; exit 111; }
+safe() { "$@" || barf "cannot $*"; }
+usage() { echo "$0 <src_directory> <target_directory>" >&2; exit 100; }
+name() { echo "${*##*/}" | sed 's/[.][^.]*$//'; }
+extension() { echo "${*##*/}" | sed 's/^.*[.]//'; }
+#TODO: make atomic -- e.g. build to a tmp dir then mv to target_directory
+#TODO: add options for robustitude
+
+# setup
+[ $# -lt 2 ] || [ $# -gt 3 ] && usage
+SRC="$1"
+TARGET="$2"
+# where my extensions at?
+EXT="$0%/*}/extensions"
+
+[ ! -e "$SRC" ] && barf "$SRC doesn't exist"
+[ ! -d "$SRC" ] && barf "$SRC is not a directory"
+
+# if it's just a strait cp
+[ -f ${SRC%*/}/ignore ] && {
+    #safe mkdir -p "$TARGET" 
+    if [ -d "${TARGET}" ] 
+    then
+        safe cp -rf "$SRC/*" "${TARGET}/.."
+    elif [ ! -e "${TARGET}" ] 
+    then
+        safe cp -rf "$SRC" "${TARGET}"
+    else
+        barf "${TARGET} is not a directory"
+    fi
+    safe rm "$TARGET/ignore"
+} && exit 0
+
+for i in `find "$SRC" -depth 1 -type f`
+do
+    NAME="`name $i`"
+    TRANSLATOR="`extension "$i"`"
+    [ -z $TRANSLATOR ] || [ "$TRANSLATOR" = "$NAME" ] && TRANSLATOR="cat -" || TRANSLATOR="$EXT/$TRANSLATOR"
+    [ "$NAME" = "template" ] && {
+        safe export template="`cat $i`" 
+        safe export translator="$TRANSLATOR"
+    } || {
+        safe export $NAME="`$TRANSLATOR < $i`"
+    }
+done
+
+DIRS=`find "$SRC" -depth 1 -type d`
+if [ -z "$DIRS" ]
+then
+    safe echo "$template" | $translator 1> "$TARGET"
+else
+    safe mkdir -p "$TARGET"
+    for i in $DIRS
+    do
+        #TODO: fork these
+        safe "$0" "${SRC%*/}/${i##*/}" "${TARGET%*/}/${i##*/}"
+    done
+fi
+exit 0
