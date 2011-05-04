@@ -1,0 +1,105 @@
+KISSSme
+@author: Matthew Story <matthewstory@gmail.com>
+@contributors: Brian Coca <briancoca@gmail.com>
+
+Keep It Stupid Simple Static Management Engine ... It's simpler than the name.
+
+KISSSme recurses directories and builds static pages.  It can act as a 
+pre-compiler if you build to templates designed to be read.  Each directory
+compiles to a single file, by default template[.<foo>] acts as the 
+base template for each file.  If there is no template[.<foo>] it defaults
+to template[.<foo>] in the parent directory (..).
+
+Version Control?
+
+Want to version control your content? Store your KISSSme inside git, 
+svn, mercurial, contribute ... whatever. The choice is yours.
+
+Directory Structure?
+
+kisssme-build
+    Builds the kisssme content.  Use it like this:
+
+        ./kisssme-build /path/to/content /path/to/output
+
+    kisssme-build is written in  Bourne.
+    
+extensions/
+    Each file in the extensions directory is an executable.  Each
+    executable serves to translate a given file extension.  For
+    example the executable 'mdml' would compile Markdown templates
+    to html.  This script should expect the body of the template to 
+    be passed in via stdin (fd 0) and to pass out processed content 
+    via (fd 1).  All other files in a directory will be processed
+    by their respective extension executable and exported to the ENV
+    of the template executable. You can set simple variables by putting
+    them in text files without extensions within each directory.
+
+    content/example_page/
+        template.jinja:
+            {{ hello_world }}
+        hello_world:
+            Hello World!
+    jinja:
+        The jinja (Jinja2) extension parser relies on python, and Jinja2.
+    mdml:
+        The mdml (Markdown) extension parser relies on perl, and Markdown.pl.
+
+Content Structure:
+
+    Hierarchy, however you like.  One more reserved file name is 'ignore'.  Not
+    .ignore, just plain ignore.  Sorry if it pollutes your name-space prefs, 
+    but transparency is worth more than anything that could possibly be stored
+    in a file named ignore.  ignore doesn't mean it's not there ... just that
+    it's ignored (read: left as is) by the compiler.  Some examples ... If 
+    you're making a website ... You might want something like this:
+        content/
+            template.jinja
+            styles/
+                ignore
+                main.css
+            index.html/
+                title
+                content.mdml
+            slideshow/
+                template.jinja
+                index.html/
+                    title
+                    content.mdml
+                photo.html/
+                    title
+                    template.jinja
+                    content.mdml
+
+    This would yield the following:
+
+        content/
+            styles/
+                main.css
+            index.html
+            slideshow/
+                index.html
+                photo.html
+    
+    Notice that any directory holding a subdirectory is compiled to a directory
+    not a file, although any files in that directory will be used in rendering
+    children.
+
+    For all your man-pages, it might make more sense like this ...
+        content/
+            template.sed
+            manl/
+                7/
+                    KISSSME/
+                        author
+                        version
+                        keywords
+                        name
+                        description
+                    other-bit-of-awesome/
+                        author
+                        version
+                        keywords
+                        name
+                        description
+                        see_also
