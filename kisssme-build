@@ -14,7 +14,7 @@ extension() { echo "${*##*/}" | sed 's/^.*[.]//'; }
 SRC="$1"
 TARGET="$2"
 # where my extensions at?
-EXT="$0%/*}/extensions"
+EXT="${0%/*}/extensions"
 
 [ ! -e "$SRC" ] && barf "$SRC doesn't exist"
 [ ! -d "$SRC" ] && barf "$SRC is not a directory"
